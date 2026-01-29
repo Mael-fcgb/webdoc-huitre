@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Au Gré des Marées - Webdocumentaire</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Lato:wght@300;400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <!-- SIDEBAR GAUCHE -->
+    <div id="sidebar-left">
+        <div class="sidebar-word">MARÉES</div>
+        <div class="sidebar-word">DES</div>
+        <div class="sidebar-word">GRÉ</div>
+        <div class="sidebar-word">AU</div>
+        <div class="sidebar-line"></div>
+    </div>
+
+    <!-- CONTENEUR PRINCIPAL DE LA CARTE -->
+    <div id="map-container">
+        <div id="map-wrapper">
+            <!-- CARTE -->
+            <img id="map" src="map.svg" draggable="false" alt="Carte du monde">
+
+            <!-- PARTICULES (SVG) -->
+            <svg id="bg-particles" width="3000" height="3000"></svg>
+
+            <!-- PINS -->
+            <div id="pins-container">
+                <div class="pin" data-id="castle" style="--pin-x: 500; --pin-y: 600;"></div>
+                <div class="pin" data-id="village" style="--pin-x: 900; --pin-y: 1050;"></div>
+                <div class="pin" data-id="port" style="--pin-x: 1500; --pin-y: 1800;"></div>
+                <div class="pin" data-id="temple" style="--pin-x: 300; --pin-y: 1950;"></div>
+                <div class="pin" data-id="forest" style="--pin-x: 1200; --pin-y: 450;"></div>
+                <div class="pin" data-id="treasure" style="--pin-x: 1700; --pin-y: 750;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRE DE NAVIGATION BAS -->
+    <div id="bottom-nav">
+        <!-- Ligne du haut (titre section + compteur) -->
+        <div class="nav-top">
+            <span class="nav-count">6</span> Lieux à trouver
+        </div>
+
+        <!-- Ligne du bas (boutons) -->
+        <div class="nav-bottom">
+            <button class="nav-section nav-purple">
+                <div class="dot active"></div>
+                MENU
+            </button>
+
+            <button class="nav-section nav-green">
+                TOUS LES MÉDIAS
+            </button> <!-- Bouton vert comme demandé -->
+
+            <button class="nav-section nav-pink">
+                MENTIONS LÉGALES
+            </button> <!-- Bouton rose renommé -->
+
+            <div class="nav-arrow">
+                →
+            </div>
+        </div>
+    </div>
+
+    <!-- PANNEAU LISTE DES MÉDIAS -->
+    <div id="list-panel" class="hidden">
+        <div class="list-header">
+            <input type="text" id="search-input" placeholder="RECHERCHER...">
+            <button class="close-btn" id="close-list">×</button>
+        </div>
+
+        <div class="list-content">
+            <!-- Pas de header row ici, juste la liste stylée -->
+            <div class="list-row list-item" data-id="castle">
+                <span class="row-title">LE CHÂTEAU DE VALDORIA</span>
+            </div>
+
+            <div class="list-row list-item" data-id="village">
+                <span class="row-title">VILLAGE DE MIRAFLOR</span>
+            </div>
+
+            <div class="list-row list-item" data-id="port">
+                <span class="row-title">PORT DE MARÉVENT</span>
+            </div>
+
+            <div class="list-row list-item" data-id="temple">
+                <span class="row-title">TEMPLE DES ANCIENS</span>
+            </div>
+
+            <div class="list-row list-item" data-id="forest">
+                <span class="row-title">FORÊT D'ÉMERAUDE</span>
+            </div>
+
+            <div class="list-row list-item" data-id="treasure">
+                <span class="row-title">ÎLE AU TRÉSOR</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP -->
+    <div id="popup" class="hidden">
+        <button id="popup-close">×</button>
+        <h2 id="popup-title">Titre</h2>
+        <p id="popup-description"></p>
+    </div>
+
+    <script src="script.js?v=4"></script>
+</body>
+
+</html>
