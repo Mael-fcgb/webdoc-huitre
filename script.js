@@ -52,7 +52,7 @@ let targetY = currentY;
 let velocityX = 0;
 let velocityY = 0;
 
-const smoothing = 0.15;
+const smoothing = 0.05; // Plus petit = plus lent et fluide
 const friction = 0.85;
 
 // Fonction pour calculer les limites
@@ -69,12 +69,17 @@ function getLimits() {
 }
 
 // Centrer la carte au démarrage
-function centerMap() {
+function centerMap(smooth = false) {
     const limits = getLimits();
-    currentX = limits.minX / 2;
-    currentY = limits.minY / 2;
-    targetX = currentX;
-    targetY = currentY;
+    // On définit la cible au centre
+    targetX = limits.minX / 2;
+    targetY = limits.minY / 2;
+
+    // Si pas smooth (démarrage), on force la position actuelle tout de suite
+    if (!smooth) {
+        currentX = targetX;
+        currentY = targetY;
+    }
 }
 
 // Support du scroll à deux doigts (trackpad)
@@ -226,6 +231,17 @@ if (navGreen) {
     });
 }
 
+// Gestion du bouton "CARTE" (Centrer la carte)
+const btnCarte = document.getElementById('btn-carte');
+if (btnCarte) {
+    btnCarte.addEventListener('click', () => {
+        centerMap(true);
+        // Optionnel : fermer les autres panneaux si ouverts
+        listPanel.classList.add('hidden');
+        closePopup();
+    });
+}
+
 // Fermer la liste
 if (closeListBtn) {
     closeListBtn.addEventListener('click', () => {
@@ -337,8 +353,18 @@ class Particle {
     }
 
     update() {
+        // OPTIMISATION : Calcule d'abord la distance sans racine carrée
         const dx = mouse.x - this.x;
         const dy = mouse.y - this.y;
+
+        // Si la particule est loin de la souris (> 250px) ET qu'elle est déjà à sa place
+        // On ne fait RIEN (pas de calcul, pas d'accès DOM = énorme gain de perf)
+        if (Math.abs(dx) > 250 || Math.abs(dy) > 250) {
+            if (this.x === this.baseX && this.y === this.baseY) {
+                return;
+            }
+        }
+
         const distance = Math.sqrt(dx * dx + dy * dy);
         const maxDistance = 60; // Rayon du "trou" réduit
 
@@ -347,8 +373,8 @@ class Particle {
         const baseDy = this.baseY - this.y;
 
         // Force de retour vers la position d'origine
-        let returnForceX = baseDx * 0.05;
-        let returnForceY = baseDy * 0.05;
+        let returnForceX = baseDx * 0.1;
+        let returnForceY = baseDy * 0.1;
 
         // Force de répulsion (souris)
         let pushForceX = 0;
@@ -370,6 +396,10 @@ class Particle {
         this.x += returnForceX + pushForceX;
         this.y += returnForceY + pushForceY;
 
+        // On arrondit pour éviter les micro-mouvements sub-pixel inutiles et stabiliser
+        if (Math.abs(this.x - this.baseX) < 0.1) this.x = this.baseX;
+        if (Math.abs(this.y - this.baseY) < 0.1) this.y = this.baseY;
+
         this.element.setAttribute('cx', this.x);
         this.element.setAttribute('cy', this.y);
     }
@@ -386,8 +416,9 @@ function spawnParticles(pixelData) {
     particles = [];
     const blueColor = '#29abe2';
 
-    // Grille régulière
-    const gridStep = 18;
+    // OPTIMISATION : Grille plus espacée (24 au lieu de 18)
+    // Cela réduit drastiquement le nombre de particules et la charge CPU
+    const gridStep = 24;
 
     // On parcourt la grille
     for (let y = 0; y < MAP_HEIGHT; y += gridStep) {
@@ -468,7 +499,11 @@ function initSVGParticles() {
     }
 }
 
+let frameCount = 0;
+
 function animateSVG() {
+    // OPTIMISATION : On retire le frameCount pour la fluidité (revert de la demande "tous les points hyper lents")
+    // Le distance check suffit à alléger le CPU.
     for (let i = 0; i < particles.length; i++) {
         particles[i].update();
     }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Au Gré des Marées - Webdocumentaire</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=7">
     <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Lato:wght@300;400;700&display=swap"
         rel="stylesheet">
 </head>
@@ -18,7 +18,6 @@
         <div class="sidebar-word">DES</div>
         <div class="sidebar-word">GRÉ</div>
         <div class="sidebar-word">AU</div>
-        <div class="sidebar-line"></div>
     </div>
 
     <!-- CONTENEUR PRINCIPAL DE LA CARTE -->
@@ -51,9 +50,9 @@
 
         <!-- Ligne du bas (boutons) -->
         <div class="nav-bottom">
-            <button class="nav-section nav-purple">
+            <button class="nav-section nav-purple" id="btn-carte">
                 <div class="dot active"></div>
-                MENU
+                CARTE
             </button>
 
             <button class="nav-section nav-green">
@@ -81,26 +80,56 @@
             <!-- Pas de header row ici, juste la liste stylée -->
             <div class="list-row list-item" data-id="castle">
                 <span class="row-title">LE CHÂTEAU DE VALDORIA</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                    <path fill-rule="evenodd"
+                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                        clip-rule="evenodd" />
+                </svg>
             </div>
 
             <div class="list-row list-item" data-id="village">
                 <span class="row-title">VILLAGE DE MIRAFLOR</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                    <path fill-rule="evenodd"
+                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                        clip-rule="evenodd" />
+                </svg>
             </div>
 
             <div class="list-row list-item" data-id="port">
                 <span class="row-title">PORT DE MARÉVENT</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                    <path fill-rule="evenodd"
+                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                        clip-rule="evenodd" />
+                </svg>
             </div>
 
             <div class="list-row list-item" data-id="temple">
                 <span class="row-title">TEMPLE DES ANCIENS</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                    <path fill-rule="evenodd"
+                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                        clip-rule="evenodd" />
+                </svg>
             </div>
 
             <div class="list-row list-item" data-id="forest">
                 <span class="row-title">FORÊT D'ÉMERAUDE</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                    <path fill-rule="evenodd"
+                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                        clip-rule="evenodd" />
+                </svg>
             </div>
 
             <div class="list-row list-item" data-id="treasure">
                 <span class="row-title">ÎLE AU TRÉSOR</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                    <path fill-rule="evenodd"
+                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                        clip-rule="evenodd" />
+                </svg>
             </div>
         </div>
     </div>
