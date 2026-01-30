@@ -8,6 +8,7 @@ body {
     overflow: hidden;
     background-color: #87CEEB;
     font-family: 'Baton-Medium', 'Baton', sans-serif;
+    cursor: url('cursor.svg') 8 8, auto;
 }
 
 #bg-particles {
@@ -55,11 +56,11 @@ body {
     width: calc(100vw - 140px);
     height: calc(100vh - 80px);
     overflow: hidden;
-    cursor: grab;
+    cursor: url('cursor.svg') 8 8, auto;
 }
 
 #map-container:active {
-    cursor: grabbing;
+    cursor: url('cursor-grab.svg') 12 12, auto;
 }
 
 #map-wrapper {
@@ -93,7 +94,7 @@ body {
     left: calc(var(--pin-x) / 2000 * 100%);
     top: calc(var(--pin-y) / 2000 * 100%);
     transform: translate(-50%, -100%);
-    cursor: pointer;
+    cursor: url('cursor.svg') 8 8, pointer;
     pointer-events: auto;
     filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.5));
     transition: filter 0.2s ease;
