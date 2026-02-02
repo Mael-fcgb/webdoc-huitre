@@ -123,7 +123,8 @@ function animate() {
 centerMap();
 animate();
 
-// Gestion du déplacement de la carte
+// Gestion du déplacement de la carte - DÉSACTIVÉ
+/*
 mapContainer.addEventListener('mousedown', (e) => {
     if (e.target.closest('.pin')) return;
     isDragging = true;
@@ -131,7 +132,7 @@ mapContainer.addEventListener('mousedown', (e) => {
     startY = e.clientY;
     velocityX = 0;
     velocityY = 0;
-    mapContainer.style.cursor = 'grabbing';
+    mapContainer.style.cursor = "url('cursor.svg') 16 18, auto";
 });
 
 let lastMouseX = 0;
@@ -163,9 +164,10 @@ document.addEventListener('mousemove', (e) => {
 document.addEventListener('mouseup', () => {
     if (isDragging) {
         isDragging = false;
-        mapContainer.style.cursor = 'grab';
+        mapContainer.style.cursor = "url('cursor.svg') 16 18, auto";
     }
 });
+*/
 
 // Gestion des clics sur les pins
 document.querySelectorAll('.pin').forEach(pin => {
@@ -179,6 +181,21 @@ document.querySelectorAll('.pin').forEach(pin => {
         }
     });
 });
+
+// Gestion du clic sur le cabanon
+const cabanon = document.querySelector('.cabanon');
+if (cabanon) {
+    cabanon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        showPopup('Cabanon', '');
+    });
+
+    // Empêcher le drag sur le cabanon
+    cabanon.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+    });
+}
 
 // Gestion des clics sur les items de la liste
 document.querySelectorAll('.list-item').forEach(item => {
@@ -249,7 +266,8 @@ if (closeListBtn) {
     });
 }
 
-// Support tactile
+// Support tactile - DÉSACTIVÉ
+/*
 let lastTouchX = 0;
 let lastTouchY = 0;
 
@@ -292,6 +310,7 @@ document.addEventListener('touchend', () => {
         isDragging = false;
     }
 });
+*/
 
 window.addEventListener('resize', () => {
     const limits = getLimits();
@@ -420,9 +439,23 @@ function spawnParticles(pixelData) {
     // Cela réduit drastiquement le nombre de particules et la charge CPU
     const gridStep = 24;
 
+    // Position de la cabane (en pixels sur la carte 3000x3000)
+    const cabanonX = 1500 / 2000 * MAP_WIDTH;
+    const cabanonY = 800 / 2000 * MAP_HEIGHT;
+    const exclusionRadius = 60; // Rayon d'exclusion autour de la cabane
+
     // On parcourt la grille
     for (let y = 0; y < MAP_HEIGHT; y += gridStep) {
         for (let x = 0; x < MAP_WIDTH; x += gridStep) {
+
+            // Vérifier si on est dans la zone d'exclusion de la cabane
+            const distToCabanon = Math.sqrt(
+                Math.pow(x - cabanonX, 2) + Math.pow(y - cabanonY, 2)
+            );
+
+            if (distToCabanon < exclusionRadius) {
+                continue; // Sauter cette particule
+            }
 
             let isWater = true;
 
