@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Au Gré des Marées - Webdocumentaire</title>
-    <link rel="stylesheet" href="style.css?v=50">
+    <link rel="stylesheet" href="style.css?v=215">
     <link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Lato:wght@300;400;700&display=swap"
         rel="stylesheet">
 </head>
@@ -20,6 +20,14 @@
         <div class="sidebar-word">AU</div>
     </div>
 
+    <!-- MINI-MAP (style GTA) -->
+    <div id="minimap">
+        <div id="minimap-container">
+            <img id="minimap-image" src="map.svg" alt="Mini carte">
+            <div id="minimap-dot"></div>
+        </div>
+    </div>
+
     <!-- CONTENEUR PRINCIPAL DE LA CARTE -->
     <div id="map-container">
         <div id="map-wrapper">
@@ -32,7 +40,7 @@
 
         <!-- PINS (séparé du map-wrapper pour éviter les interférences) -->
         <div id="pins-container">
-            <div class="cabanon pin" style="--pin-x: 1500; --pin-y: 800;">
+            <div class="cabanon pin" style="--pin-x: 1300; --pin-y: 1400;">
                 <img src="cabanon.png" alt="Cabanon" class="cabanon-icon">
             </div>
         </div>
@@ -60,9 +68,7 @@
                 MENTIONS LÉGALES
             </button> <!-- Bouton rose renommé -->
 
-            <div class="nav-arrow">
-                →
-            </div>
+
         </div>
     </div>
 
@@ -75,59 +81,89 @@
 
         <div class="list-content">
             <!-- Pas de header row ici, juste la liste stylée -->
-            <div class="list-row list-item" data-id="castle">
-                <span class="row-title">LE CHÂTEAU DE VALDORIA</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                    <path fill-rule="evenodd"
-                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                        clip-rule="evenodd" />
-                </svg>
+            <div class="list-content">
+                <!-- La liste sera remplie dynamiquement ou manuellement plus tard -->
+                <div class="list-row list-item" data-id="cabanon">
+                    <span class="row-title">LE CABANON</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
+                        <path fill-rule="evenodd"
+                            d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <div class="list-row list-item" data-id="village">
-                <span class="row-title">VILLAGE DE MIRAFLOR</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                    <path fill-rule="evenodd"
-                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
+    <!-- PANNEAU MENTIONS LÉGALES -->
+    <div id="legal-panel" class="hidden">
+        <div class="list-header">
+            <h2
+                style="color: #400097; font-family: 'Baton-Medium', sans-serif; font-size: 2.2rem; margin: 0; line-height: 1.2;">
+                MENTIONS LÉGALES</h2>
+            <button class="close-btn" id="close-legal" aria-label="Fermer">×</button>
+        </div>
 
-            <div class="list-row list-item" data-id="port">
-                <span class="row-title">PORT DE MARÉVENT</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                    <path fill-rule="evenodd"
-                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
+        <div class="list-content"
+            style="padding: 30px; color: #400097; font-family: 'Lato', sans-serif; line-height: 1.6; overflow-y: auto;">
 
-            <div class="list-row list-item" data-id="temple">
-                <span class="row-title">TEMPLE DES ANCIENS</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                    <path fill-rule="evenodd"
-                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
+            <section style="margin-bottom: 30px;">
+                <h3
+                    style="font-family: 'Baton-Medium', sans-serif; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #400097; padding-bottom: 5px;">
+                    1. Présentation du site</h3>
+                <p>
+                    Ce site internet est un webdocumentaire réalisé dans le cadre d'un projet étudiant.
+                </p>
+            </section>
 
-            <div class="list-row list-item" data-id="forest">
-                <span class="row-title">FORÊT D'ÉMERAUDE</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                    <path fill-rule="evenodd"
-                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
+            <section style="margin-bottom: 30px;">
+                <h3
+                    style="font-family: 'Baton-Medium', sans-serif; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #400097; padding-bottom: 5px;">
+                    2. Crédits & Réalisation</h3>
+                <p><strong>Projet étudiant réalisé par :</strong><br>
+                    Tom Detaevernier, Manon Brégué, Mélannie Moreau, Linda Elbs et Maël Larue.
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>Cadre de la formation :</strong><br>
+                    IUT de Bordeaux Montaigne - BUT Métiers du Multimédia et de l'Internet (MMI).
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>Encadrement pédagogique :</strong><br>
+                    Charles-Alexandre Delestage, Gwendal Judic et Thomas Brunel.
+                </p>
+            </section>
 
-            <div class="list-row list-item" data-id="treasure">
-                <span class="row-title">ÎLE AU TRÉSOR</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                    <path fill-rule="evenodd"
-                        d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                        clip-rule="evenodd" />
-                </svg>
-            </div>
+            <section style="margin-bottom: 30px;">
+                <h3
+                    style="font-family: 'Baton-Medium', sans-serif; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #400097; padding-bottom: 5px;">
+                    3. Hébergement</h3>
+                <p>
+                    Le site est hébergé par [Nom de l'hébergeur]<br>
+                    [Adresse de l'hébergeur]<br>
+                    [Téléphone de l'hébergeur]
+                </p>
+            </section>
+
+            <section style="margin-bottom: 30px;">
+                <h3
+                    style="font-family: 'Baton-Medium', sans-serif; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #400097; padding-bottom: 5px;">
+                    4. Propriété intellectuelle</h3>
+                <p>
+                    L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et
+                    la propriété intellectuelle. Tous les droits de reproduction sont réservés, y compris pour les
+                    documents téléchargeables et les représentations iconographiques et photographiques.
+                </p>
+            </section>
+
+            <section style="margin-bottom: 30px;">
+                <h3
+                    style="font-family: 'Baton-Medium', sans-serif; font-size: 1.2rem; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #400097; padding-bottom: 5px;">
+                    5. Données personnelles</h3>
+                <p>
+                    Ce site ne collecte aucune donnée personnelle à l'insu de l'utilisateur. Aucune information
+                    personnelle n'est cédée à des tiers.
+                </p>
+            </section>
         </div>
     </div>
 
@@ -142,7 +178,7 @@
         <p id="popup-description"></p>
     </div>
 
-    <script src="script.js?v=41"></script>
+    <script src="script.js?v=150"></script>
 </body>
 
 </html>

@@ -1,28 +1,9 @@
 // Données des points d'intérêt
+// Données des points d'intérêt
 const poiData = {
-    castle: {
-        title: "Château de Valdoria",
-        description: "Ancienne forteresse construite au XIIe siècle, le Château de Valdoria domine la vallée depuis plus de 800 ans. Ses murailles ont résisté à de nombreux sièges et abritent aujourd'hui un musée d'histoire médiévale."
-    },
-    village: {
-        title: "Village de Miraflor",
-        description: "Charmant village de pêcheurs et d'artisans, Miraflor est célèbre pour son marché hebdomadaire et ses maisons colorées. La population locale perpétue des traditions ancestrales de tissage et de poterie."
-    },
-    port: {
-        title: "Port de Marévent",
-        description: "Principal port commercial de la région, Marévent voit passer des navires du monde entier. C'est ici que les explorateurs partaient jadis à la découverte de nouvelles terres."
-    },
-    temple: {
-        title: "Temple des Anciens",
-        description: "Situé sur l'île mystérieuse de Lunara, ce temple millénaire est dédié aux divinités de la mer et du ciel. Les ruines recèlent encore de nombreux secrets à découvrir."
-    },
-    forest: {
-        title: "Forêt d'Émeraude",
-        description: "Cette forêt dense et luxuriante abrite une biodiversité exceptionnelle. On raconte que des créatures magiques s'y cachent et que certains arbres auraient plus de mille ans."
-    },
-    treasure: {
-        title: "Île au Trésor",
-        description: "Selon la légende, un pirate nommé Barbe-Rouge aurait enterré son trésor sur cette île il y a 300 ans. De nombreux chercheurs de fortune ont tenté leur chance... en vain."
+    cabanon: {
+        title: "LE CABANON",
+        description: "Découvrez l'histoire de ce lieu emblématique."
     }
 };
 
@@ -30,13 +11,16 @@ const poiData = {
 const mapContainer = document.getElementById('map-container');
 const mapWrapper = document.getElementById('map-wrapper');
 const pinsContainer = document.getElementById('pins-container');
+const navGreen = document.querySelector('.nav-green');
+const navPink = document.querySelector('.nav-pink');
+const listPanel = document.getElementById('list-panel');
+const legalPanel = document.getElementById('legal-panel');
 const popup = document.getElementById('popup');
 const popupTitle = document.getElementById('popup-title');
 const popupDescription = document.getElementById('popup-description');
 const popupClose = document.getElementById('popup-close');
-const listPanel = document.getElementById('list-panel');
 const closeListBtn = document.getElementById('close-list');
-const navGreen = document.querySelector('.nav-green');
+const closeLegalBtn = document.getElementById('close-legal');
 
 // Dimensions du SVG (zoomé)
 const MAP_WIDTH = 3000;
@@ -70,10 +54,21 @@ function getLimits() {
 
 // Centrer la carte au démarrage
 function centerMap(smooth = false) {
+    const containerWidth = mapContainer.offsetWidth;
+    const containerHeight = mapContainer.offsetHeight;
+
+    // Position du cabanon sur la carte (en pixels)
+    const cabanonX = 1200 / 2000 * MAP_WIDTH;
+    const cabanonY = 1350 / 2000 * MAP_HEIGHT;
+
+    // Centrer la vue sur le cabanon
+    targetX = -(cabanonX - containerWidth / 2);
+    targetY = -(cabanonY - containerHeight / 2);
+
+    // Appliquer les limites
     const limits = getLimits();
-    // On définit la cible au centre
-    targetX = limits.minX / 2;
-    targetY = limits.minY / 2;
+    targetX = Math.max(limits.minX, Math.min(limits.maxX, targetX));
+    targetY = Math.max(limits.minY, Math.min(limits.maxY, targetY));
 
     // Si pas smooth (démarrage), on force la position actuelle tout de suite
     if (!smooth) {
@@ -117,7 +112,44 @@ function animate() {
     pinsContainer.style.left = currentX + 'px';
     pinsContainer.style.top = currentY + 'px';
 
+    // Mise à jour de la mini-map
+    updateMinimap();
+
     requestAnimationFrame(animate);
+}
+
+
+// Fonction pour mettre à jour la mini-map
+function updateMinimap() {
+    const minimapImage = document.getElementById('minimap-image');
+    const minimapDot = document.getElementById('minimap-dot');
+
+    if (!minimapImage || !minimapDot) return;
+
+    // Calculer le vrai centre de l'écran visible (en tenant compte des sidebars)
+    const sidebarLeftWidth = 140;
+    const sidebarRightWidth = 140;
+    const bottomNavHeight = 80;
+    const visibleWidth = window.innerWidth - sidebarLeftWidth - sidebarRightWidth;
+    const visibleHeight = window.innerHeight - bottomNavHeight;
+    const screenCenterX = sidebarLeftWidth + visibleWidth / 2;
+    const screenCenterY = visibleHeight / 2;
+    const mapCenterX = -currentX + screenCenterX;
+    const mapCenterY = -currentY + screenCenterY;
+
+    // La carte de la mini-map reste fixe (remplit tout le conteneur)
+    const minimapSize = 200;
+    minimapImage.style.left = '0px';
+    minimapImage.style.top = '0px';
+    minimapImage.style.width = '100%';
+    minimapImage.style.height = '100%';
+
+    // Le point se déplace pour indiquer la position
+    const dotX = (mapCenterX / MAP_WIDTH) * minimapSize;
+    const dotY = (mapCenterY / MAP_HEIGHT) * minimapSize;
+
+    minimapDot.style.left = dotX + 'px';
+    minimapDot.style.top = dotY + 'px';
 }
 
 centerMap();
@@ -188,7 +220,10 @@ if (cabanon) {
     cabanon.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        showPopup('Cabanon', '');
+        const data = poiData.cabanon;
+        if (data) {
+            showPopup(data.title, data.description);
+        }
     });
 
     // Empêcher le drag sur le cabanon
@@ -245,6 +280,19 @@ document.addEventListener('keydown', (e) => {
 if (navGreen) {
     navGreen.addEventListener('click', () => {
         listPanel.classList.toggle('hidden');
+        if (!legalPanel.classList.contains('hidden')) {
+            legalPanel.classList.add('hidden');
+        }
+    });
+}
+
+// Gestion du bouton "Mentions légales"
+if (navPink) {
+    navPink.addEventListener('click', () => {
+        legalPanel.classList.toggle('hidden');
+        if (!listPanel.classList.contains('hidden')) {
+            listPanel.classList.add('hidden');
+        }
     });
 }
 
@@ -265,6 +313,30 @@ if (closeListBtn) {
         listPanel.classList.add('hidden');
     });
 }
+
+// Fermer les mentions légales
+if (closeLegalBtn) {
+    closeLegalBtn.addEventListener('click', () => {
+        legalPanel.classList.add('hidden');
+    });
+}
+
+// Fermer les panneaux au clic en dehors
+document.addEventListener('click', (e) => {
+    // Pour le panneau Mentions Légales
+    if (!legalPanel.classList.contains('hidden') &&
+        !legalPanel.contains(e.target) &&
+        (navPink && !navPink.contains(e.target))) {
+        legalPanel.classList.add('hidden');
+    }
+
+    // Pour le panneau Tous les médias (optionnel mais cohérent)
+    if (!listPanel.classList.contains('hidden') &&
+        !listPanel.contains(e.target) &&
+        (navGreen && !navGreen.contains(e.target))) {
+        listPanel.classList.add('hidden');
+    }
+});
 
 // Support tactile - DÉSACTIVÉ
 /*
@@ -440,22 +512,9 @@ function spawnParticles(pixelData) {
     const gridStep = 24;
 
     // Position de la cabane (en pixels sur la carte 3000x3000)
-    const cabanonX = 1500 / 2000 * MAP_WIDTH;
-    const cabanonY = 800 / 2000 * MAP_HEIGHT;
-    const exclusionRadius = 60; // Rayon d'exclusion autour de la cabane
-
     // On parcourt la grille
     for (let y = 0; y < MAP_HEIGHT; y += gridStep) {
         for (let x = 0; x < MAP_WIDTH; x += gridStep) {
-
-            // Vérifier si on est dans la zone d'exclusion de la cabane
-            const distToCabanon = Math.sqrt(
-                Math.pow(x - cabanonX, 2) + Math.pow(y - cabanonY, 2)
-            );
-
-            if (distToCabanon < exclusionRadius) {
-                continue; // Sauter cette particule
-            }
 
             let isWater = true;
 
