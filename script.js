@@ -4,6 +4,21 @@ const poiData = {
     cabanon: {
         title: "LE CABANON",
         description: "Découvrez l'histoire de ce lieu emblématique."
+    },
+    huitre: {
+        title: "PARCS À HUITRES",
+        description: "Découvrez l'histoire de ce lieu emblématique."
+    },
+    quiz: {
+        title: "LE JUSTE PRIX : DÉGUSTATION",
+        question: "Quelle est la meilleure durée à attendre pour déguster une huître ?",
+        options: [
+            { id: 'A', text: "Jour 1", correct: false },
+            { id: 'B', text: "Jour 2-3", correct: true },
+            { id: 'C', text: "Jour 4-5", correct: false },
+            { id: 'D', text: "Jour 6-7", correct: false }
+        ],
+        feedback: "L'huître est vivante ! Elle libère ses arômes et sa 'deuxième eau' optimale entre le 2ème et le 3ème jour."
     }
 };
 
@@ -18,6 +33,10 @@ const legalPanel = document.getElementById('legal-panel');
 const popup = document.getElementById('popup');
 const popupTitle = document.getElementById('popup-title');
 const popupDescription = document.getElementById('popup-description');
+const popupVideo = document.getElementById('popup-video');
+const quizContainer = document.getElementById('quiz-container');
+const quizOptions = document.getElementById('quiz-options');
+const quizFeedback = document.getElementById('quiz-feedback');
 const popupClose = document.getElementById('popup-close');
 const closeListBtn = document.getElementById('close-list');
 const closeLegalBtn = document.getElementById('close-legal');
@@ -35,6 +54,8 @@ let targetX = currentX;
 let targetY = currentY;
 let velocityX = 0;
 let velocityY = 0;
+let isLocked = true; // Verrouillage initial de la carte
+let isBoatMoving = false; // Le bateau ne bouge pas au début
 
 const smoothing = 0.05; // Plus petit = plus lent et fluide
 const friction = 0.85;
@@ -79,6 +100,7 @@ function centerMap(smooth = false) {
 
 // Support du scroll à deux doigts (trackpad)
 mapContainer.addEventListener('wheel', (e) => {
+    if (isLocked) return; // Bloquer le scroll si verrouillé
     e.preventDefault();
 
     const limits = getLimits();
@@ -115,7 +137,52 @@ function animate() {
     // Mise à jour de la mini-map
     updateMinimap();
 
+    // Animation du bateau
+    updateBoat();
+
     requestAnimationFrame(animate);
+}
+
+// ==========================================
+// ANIMATION DU BATEAU
+// ==========================================
+const boat = document.getElementById('boat');
+let boatProgress = 0;
+let boatDirection = 1; // 1 = vers parc, -1 = vers cabanon
+const boatSpeed = 0.0005; // Très lent
+
+const points = {
+    cabanon: { x: 1300, y: 1400 },
+    parc: { x: 400, y: 400 }
+};
+
+function updateBoat() {
+    if (!boat || !isBoatMoving) return;
+
+    boatProgress += boatSpeed * boatDirection;
+
+    if (boatProgress >= 1) {
+        boatProgress = 1;
+        boatDirection = -1;
+    } else if (boatProgress <= 0) {
+        boatProgress = 0;
+        boatDirection = 1;
+    }
+
+    // Interpolation linéaire
+    const x = points.cabanon.x + (points.parc.x - points.cabanon.x) * boatProgress;
+    const y = points.cabanon.y + (points.parc.y - points.cabanon.y) * boatProgress;
+
+    // Calcul de l'angle
+    const angle = Math.atan2(points.parc.y - points.cabanon.y, points.parc.x - points.cabanon.x);
+    let rotation = angle * (180 / Math.PI);
+
+    // Si on rentre, on fait demi-tour
+    if (boatDirection === -1) rotation += 180;
+
+    boat.style.setProperty('--pin-x', x);
+    boat.style.setProperty('--pin-y', y);
+    boat.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
 }
 
 
@@ -206,10 +273,8 @@ document.querySelectorAll('.pin').forEach(pin => {
     pin.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = pin.dataset.id;
-        const data = poiData[id];
-
-        if (data) {
-            showPopup(data.title, data.description);
+        if (id) {
+            showPopup(id);
         }
     });
 });
@@ -220,9 +285,19 @@ if (cabanon) {
     cabanon.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
+
+        // Supprimé le déverrouillage immédiat ici pour attendre la fermeture de la popup
+        /*
+        if (isLocked) {
+            isLocked = false;
+            const onboardingBox = document.getElementById('onboarding-box');
+            if (onboardingBox) onboardingBox.classList.add('hidden');
+        }
+        */
+
         const data = poiData.cabanon;
         if (data) {
-            showPopup(data.title, data.description);
+            showPopup('cabanon');
         }
     });
 
@@ -236,18 +311,46 @@ if (cabanon) {
 document.querySelectorAll('.list-item').forEach(item => {
     item.addEventListener('click', () => {
         const id = item.dataset.id;
-        const data = poiData[id];
-
-        if (data) {
-            showPopup(data.title, data.description);
+        if (id) {
+            showPopup(id);
         }
     });
 });
 
 // Afficher la popup
-function showPopup(title, description) {
-    popupTitle.textContent = title;
-    popupDescription.textContent = description;
+function showPopup(id) {
+    const data = poiData[id];
+    if (!data) return;
+
+    popupTitle.textContent = data.title;
+
+    // Reset display
+    if (popupVideo) popupVideo.classList.add('hidden');
+    if (quizContainer) quizContainer.classList.add('hidden');
+    if (popupDescription) popupDescription.classList.add('hidden');
+    if (quizFeedback) quizFeedback.classList.add('hidden');
+    if (quizOptions) quizOptions.innerHTML = '';
+
+    if (id === 'quiz') {
+        quizContainer.classList.remove('hidden');
+        popupTitle.textContent = data.title; // "LE JUSTE PRIX : DÉGUSTATION"
+        popupDescription.textContent = data.question; // La question
+        popupDescription.classList.remove('hidden');
+
+        data.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-option';
+            btn.textContent = `${opt.id}: ${opt.text}`;
+            btn.onclick = () => handleQuizAnswer(btn, opt.correct, data.feedback);
+            quizOptions.appendChild(btn);
+        });
+    } else {
+        if (popupVideo) popupVideo.classList.remove('hidden');
+        popupTitle.textContent = data.title;
+        popupDescription.textContent = data.description;
+        popupDescription.classList.remove('hidden');
+    }
+
     popup.classList.remove('hidden');
 
     const overlay = document.createElement('div');
@@ -258,12 +361,42 @@ function showPopup(title, description) {
     overlay.addEventListener('click', closePopup);
 }
 
+function handleQuizAnswer(button, isCorrect, feedbackText) {
+    // Disable all buttons
+    const buttons = quizOptions.querySelectorAll('.quiz-option');
+    buttons.forEach(btn => btn.disabled = true);
+
+    if (isCorrect) {
+        button.classList.add('correct');
+    } else {
+        button.classList.add('incorrect');
+        // Show correct answer too
+        const options = poiData.quiz.options;
+        const correctIndex = options.findIndex(o => o.correct);
+        buttons[correctIndex].classList.add('correct');
+    }
+
+    quizFeedback.textContent = feedbackText;
+    quizFeedback.classList.remove('hidden');
+}
+
 // Fermer la popup
 function closePopup() {
     popup.classList.add('hidden');
     const overlay = document.getElementById('overlay');
     if (overlay) {
         overlay.remove();
+    }
+
+    // Suite onboarding : déverrouiller la carte et lancer le bateau
+    if (isLocked) {
+        isLocked = false;
+        isBoatMoving = true;
+        const onboardingBox = document.getElementById('onboarding-box');
+        if (onboardingBox) {
+            onboardingBox.textContent = "le bateau se rend vers le parc à huitre, cliquez dessus pour suivre son trajet.";
+            onboardingBox.classList.remove('hidden'); // S'assurer qu'il est visible
+        }
     }
 }
 
