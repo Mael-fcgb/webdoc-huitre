@@ -629,7 +629,7 @@ class Particle {
     }
 }
 
-function spawnParticles(pixelData) {
+function spawnParticles() {
     svgContainer = document.getElementById('bg-particles');
     if (!svgContainer) return;
 
@@ -640,50 +640,13 @@ function spawnParticles(pixelData) {
     particles = [];
     const blueColor = '#29abe2';
 
-    // OPTIMISATION : Grille plus espacée (24 au lieu de 18)
-    // Cela réduit drastiquement le nombre de particules et la charge CPU
-    const gridStep = 24;
+    // Grille pour couvrir toute la carte (le masque SVG s'occupe de cacher la terre)
+    // gridStep 18 pour être assez dense pour les petits bassins
+    const gridStep = 18;
 
-    // Position de la cabane (en pixels sur la carte 3000x3000)
-    // On parcourt la grille
     for (let y = 0; y < MAP_HEIGHT; y += gridStep) {
         for (let x = 0; x < MAP_WIDTH; x += gridStep) {
-
-            let isWater = true;
-
-            if (pixelData) {
-                const index = (Math.floor(y) * MAP_WIDTH + Math.floor(x)) * 4;
-                const r = pixelData[index];
-                const b = pixelData[index + 2];
-                const a = pixelData[index + 3];
-
-                // Si on a de la donnée
-                if (a > 50) {
-                    if (r > b) {
-                        isWater = false;
-                    }
-                } else if (!a) {
-                    // transparent ou non chargé -> on ignore
-                    // Sauf si on veut absolument remplir les trous
-                }
-            } else {
-                isWater = false;
-            }
-
-            if (isWater) {
-                const size = 4;
-                particles.push(new Particle(x, y, size, blueColor));
-            }
-        }
-    }
-
-    // FALLBACK : Si 0 particule (bug scan), on remplit tout
-    if (particles.length === 0) {
-        console.warn("Scan pixel échoué. Mode Fallback activé.");
-        for (let y = 0; y < MAP_HEIGHT; y += gridStep) {
-            for (let x = 0; x < MAP_WIDTH; x += gridStep) {
-                particles.push(new Particle(x, y, 4, blueColor));
-            }
+            particles.push(new Particle(x, y, 2.5, blueColor));
         }
     }
 
@@ -703,24 +666,13 @@ function initSVGParticles() {
     imgInfo.crossOrigin = "Anonymous";
 
     imgInfo.onload = function () {
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = MAP_WIDTH;
-        offCanvas.height = MAP_HEIGHT;
-        const offCtx = offCanvas.getContext('2d');
-
-        try {
-            offCtx.drawImage(imgInfo, 0, 0, MAP_WIDTH, MAP_HEIGHT);
-            const imageData = offCtx.getImageData(0, 0, MAP_WIDTH, MAP_HEIGHT);
-            spawnParticles(imageData.data);
-        } catch (e) {
-            console.error("Erreur sampling map", e);
-            spawnParticles(null); // Déclenchera le fallback
-        }
+        // Le scan pixel est désactivé car on utilise le masquage SVG (plus fiable)
+        spawnParticles();
     };
 
     imgInfo.onerror = function () {
         console.error("Erreur chargement map.svg");
-        spawnParticles(null); // Déclenchera le fallback
+        spawnParticles();
     }
 }
 
