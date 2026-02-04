@@ -275,25 +275,6 @@ body {
     object-fit: contain;
 }
 
-/* Quiz Pin */
-.quiz {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    left: calc(var(--pin-x) / 2000 * 100%);
-    top: calc(var(--pin-y) / 2000 * 100%);
-    transform: translate(-50%, -50%);
-    cursor: url('cursor-grab.svg') 16 18, pointer;
-    pointer-events: auto;
-    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
-    z-index: 100;
-}
-
-.quiz-icon {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
 
 /* Mini-map (style GTA) */
 #minimap {
@@ -751,15 +732,16 @@ video {
         opacity: 1;
     }
 }
+
 /* --- MESSENGER SYSTEM --- */
 
 #messenger-notification {
     position: fixed;
-    bottom: 120px;
-    right: 20px;
+    bottom: 180px;
+    right: 40px;
     z-index: 1000;
     cursor: pointer;
-    animation: bounceIn 0.5s ease;
+    animation: bounceIn 0.5s ease, shake 3s infinite 2s;
 }
 
 #messenger-notification.hidden {
@@ -770,13 +752,25 @@ video {
     background: #400097;
     color: #ffe304;
     padding: 12px 20px;
-    border-radius: 20px 20px 0 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 0;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     min-width: 150px;
     position: relative;
-    border: 2px solid #ffe304;
+    border: 3px solid #ffe304;
+}
+
+.notif-dot {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: 20px;
+    height: 20px;
+    background: #ff4747;
+    /* Rouge vif */
+    border-radius: 50%;
+    z-index: 10;
 }
 
 .messenger-name {
@@ -792,9 +786,43 @@ video {
 }
 
 @keyframes bounceIn {
-    0% { transform: scale(0); opacity: 0; }
-    60% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    80%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    81%,
+    83%,
+    85%,
+    87%,
+    89% {
+        transform: translate(-2px, 0);
+    }
+
+    82%,
+    84%,
+    86%,
+    88% {
+        transform: translate(2px, 0);
+    }
 }
 
 #messenger-container {
@@ -834,7 +862,7 @@ video {
     display: flex;
     flex-direction: column;
     z-index: 2010;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: none;
 }
 
 .messenger-header {
@@ -864,26 +892,25 @@ video {
 
 .chat-bubble {
     padding: 12px 18px;
-    border-radius: 15px;
+    border-radius: 0;
     max-width: 85%;
     font-family: inherit;
     font-size: 1.1rem;
     line-height: 1.4;
     position: relative;
+    border: 2px solid #400097;
 }
 
 .chat-bubble.manon {
     background: #ffffff;
     color: #400097;
     align-self: flex-start;
-    border-bottom-left-radius: 2px;
 }
 
 .chat-bubble.user {
     background: #400097;
     color: #ffe304;
     align-self: flex-end;
-    border-bottom-right-radius: 2px;
 }
 
 .messenger-options {

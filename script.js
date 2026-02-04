@@ -400,6 +400,10 @@ function closePopup() {
 
     // Suite onboarding : Déclenchement Messenger ou Bateau
     if (isLocked && activePopupId === 'cabanon') {
+        isLocked = false;
+        const onboardingBox = document.getElementById('onboarding-box');
+        if (onboardingBox) onboardingBox.classList.add('hidden');
+
         // Au lieu de lancer le bateau direct, on lance la notif de Manon
         setTimeout(triggerMessengerNotification, 1000);
     } else if (isLocked) {
@@ -796,13 +800,16 @@ function handleMessengerAnswer(option) {
 function closeMessenger() {
     messengerContainer.classList.add('hidden');
 
+    // Mettre à jour et afficher la box d'onboarding pour le bateau
+    const onboardingBox = document.getElementById('onboarding-box');
+    if (onboardingBox) {
+        onboardingBox.textContent = "Le bateau part vers le parc à huitres. Cliquez dessus pour suivre son trajet !";
+        onboardingBox.classList.remove('hidden');
+    }
+
     // Déclencher le mouvement du bateau si on est en onboarding
     if (!isBoatMoving) {
         isBoatMoving = true;
-        const onboardingBox = document.getElementById('onboarding-box');
-        if (onboardingBox) {
-            onboardingBox.textContent = "Le bateau part vers le parc. Suis-le !";
-        }
     }
 }
 
