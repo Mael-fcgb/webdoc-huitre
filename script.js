@@ -155,7 +155,7 @@ function animate() {
 // ANIMATION DU BATEAU
 // ==========================================
 const boat = document.getElementById('boat');
-let boatProgress = 0;
+let boatProgress = 0.12; // Un peu plus loin du cabanon (12% du trajet)
 let boatDirection = 1; // 1 = vers parc, -1 = vers cabanon
 const boatSpeed = 0.0005; // Très lent
 
@@ -165,16 +165,18 @@ const points = {
 };
 
 function updateBoat() {
-    if (!boat || !isBoatMoving) return;
+    if (!boat) return;
 
-    boatProgress += boatSpeed * boatDirection;
+    if (isBoatMoving) {
+        boatProgress += boatSpeed * boatDirection;
 
-    if (boatProgress >= 1) {
-        boatProgress = 1;
-        boatDirection = -1;
-    } else if (boatProgress <= 0) {
-        boatProgress = 0;
-        boatDirection = 1;
+        if (boatProgress >= 1) {
+            boatProgress = 1;
+            boatDirection = -1;
+        } else if (boatProgress <= 0) {
+            boatProgress = 0;
+            boatDirection = 1;
+        }
     }
 
     // Interpolation linéaire
@@ -674,8 +676,8 @@ class Particle {
             forceY -= (dy / distance) * strength;
         }
 
-        // Force bateau
-        if (boatDistance < boatMaxDistance) {
+        // Force bateau (uniquement s'il se déplace)
+        if (isBoatMoving && boatDistance < boatMaxDistance) {
             const force = (boatMaxDistance - boatDistance) / boatMaxDistance;
             const strength = Math.pow(force, 2) * 80;
             forceX -= (bdx / boatDistance) * strength;
