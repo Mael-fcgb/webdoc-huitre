@@ -181,12 +181,18 @@ function updateBoat() {
     const x = points.cabanon.x + (points.parc.x - points.cabanon.x) * boatProgress;
     const y = points.cabanon.y + (points.parc.y - points.cabanon.y) * boatProgress;
 
-    // Calcul de l'angle
+    // Calcul de l'angle (entre cabanon et parc)
     const angle = Math.atan2(points.parc.y - points.cabanon.y, points.parc.x - points.cabanon.x);
     let rotation = angle * (180 / Math.PI);
 
-    // Si on rentre, on fait demi-tour
-    if (boatDirection === -1) rotation += 180;
+    // Si on va vers le cabanon (retour), on inverse 
+    if (boatDirection === -1) {
+        rotation += 180;
+    }
+
+    // Ajustement de l'offset si le SVG n'est pas orienté vers la droite (0°) par défaut
+    // Ici on ajoute +90 car souvent les bateaux sont dessinés "vers le haut"
+    rotation += 90;
 
     boat.style.setProperty('--pin-x', x);
     boat.style.setProperty('--pin-y', y);
