@@ -41,6 +41,13 @@ const popupClose = document.getElementById('popup-close');
 const closeListBtn = document.getElementById('close-list');
 const closeLegalBtn = document.getElementById('close-legal');
 
+// Éléments Messenger
+const messengerNotif = document.getElementById('messenger-notification');
+const messengerContainer = document.getElementById('messenger-container');
+const messengerChat = document.getElementById('messenger-chat');
+const messengerOptions = document.getElementById('messenger-options');
+const closeMessengerBtn = document.getElementById('close-messenger');
+
 // Dimensions du SVG (zoomé)
 const MAP_WIDTH = 3000;
 const MAP_HEIGHT = 3000;
@@ -317,8 +324,11 @@ document.querySelectorAll('.list-item').forEach(item => {
     });
 });
 
+let activePopupId = null;
+
 // Afficher la popup
 function showPopup(id) {
+    activePopupId = id;
     const data = poiData[id];
     if (!data) return;
 
@@ -388,15 +398,14 @@ function closePopup() {
         overlay.remove();
     }
 
-    // Suite onboarding : déverrouiller la carte et lancer le bateau
-    if (isLocked) {
+    // Suite onboarding : Déclenchement Messenger ou Bateau
+    if (isLocked && activePopupId === 'cabanon') {
+        // Au lieu de lancer le bateau direct, on lance la notif de Manon
+        setTimeout(triggerMessengerNotification, 1000);
+    } else if (isLocked) {
+        // Fallback si c'est pas le cabanon (ne devrait pas arriver en onboarding normal)
         isLocked = false;
         isBoatMoving = true;
-        const onboardingBox = document.getElementById('onboarding-box');
-        if (onboardingBox) {
-            onboardingBox.textContent = "le bateau se rend vers le parc à huitre, cliquez dessus pour suivre son trajet.";
-            onboardingBox.classList.remove('hidden'); // S'assurer qu'il est visible
-        }
     }
 }
 
@@ -690,3 +699,113 @@ function animateSVG() {
 window.addEventListener('load', () => {
     setTimeout(initSVGParticles, 100);
 });
+
+/* --- MESSENGER LOGIC --- */
+
+function triggerMessengerNotification() {
+    if (!messengerNotif) return;
+    messengerNotif.classList.remove('hidden');
+
+    // Jouer un petit son ? (Optionnel)
+
+    messengerNotif.onclick = () => {
+        messengerNotif.classList.add('hidden');
+        openMessenger();
+    };
+}
+
+function openMessenger() {
+    if (!messengerContainer) return;
+    messengerContainer.classList.remove('hidden');
+    messengerChat.innerHTML = '';
+    messengerOptions.classList.add('hidden');
+
+    // Sequence de messages
+    setTimeout(() => {
+        addChatBubble("Manon", "Coucou ! J'espère que la visite du cabanon t'a plu. 😊");
+    }, 500);
+
+    setTimeout(() => {
+        addChatBubble("Manon", "Avant de partir vers les parcs, j'ai une petite question pour toi...");
+    }, 2000);
+
+    setTimeout(() => {
+        showMessengerQuiz();
+    }, 3500);
+}
+
+function addChatBubble(sender, text) {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${sender.toLowerCase() === 'manon' ? 'manon' : 'user'}`;
+    bubble.textContent = text;
+    messengerChat.appendChild(bubble);
+    messengerChat.scrollTop = messengerChat.scrollHeight;
+}
+
+function showMessengerQuiz() {
+    const data = poiData.quiz;
+    addChatBubble("Manon", data.question);
+
+    messengerOptions.innerHTML = '';
+    messengerOptions.classList.remove('hidden');
+
+    data.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'messenger-option';
+        btn.textContent = opt.text;
+        btn.onclick = () => handleMessengerAnswer(opt);
+        messengerOptions.appendChild(btn);
+    });
+}
+
+function handleMessengerAnswer(option) {
+    // Désactiver les options
+    messengerOptions.classList.add('hidden');
+
+    // Message de l'utilisateur
+    addChatBubble("Moi", option.text);
+
+    setTimeout(() => {
+        if (option.correct) {
+            addChatBubble("Manon", "Bravo ! C'est exactement ça. 🎉");
+        } else {
+            addChatBubble("Manon", "Mmmh, pas tout à fait...");
+        }
+
+        setTimeout(() => {
+            addChatBubble("Manon", poiData.quiz.feedback);
+        }, 1200);
+
+        setTimeout(() => {
+            addChatBubble("Manon", "Bon, je te laisse filer au parc ! Le bateau t'attend. Bon voyage ! 👋");
+
+            // Ajouter un bouton "Fermer" final ou fermer auto
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'messenger-option';
+            closeBtn.textContent = "C'est parti !";
+            closeBtn.style.marginTop = "10px";
+            closeBtn.onclick = closeMessenger;
+            messengerOptions.innerHTML = '';
+            messengerOptions.appendChild(closeBtn);
+            messengerOptions.classList.remove('hidden');
+        }, 3000);
+
+    }, 800);
+}
+
+function closeMessenger() {
+    messengerContainer.classList.add('hidden');
+
+    // Déclencher le mouvement du bateau si on est en onboarding
+    if (!isBoatMoving) {
+        isBoatMoving = true;
+        const onboardingBox = document.getElementById('onboarding-box');
+        if (onboardingBox) {
+            onboardingBox.textContent = "Le bateau part vers le parc. Suis-le !";
+        }
+    }
+}
+
+if (closeMessengerBtn) {
+    closeMessengerBtn.onclick = closeMessenger;
+}
