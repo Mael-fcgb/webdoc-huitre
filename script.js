@@ -63,6 +63,7 @@ let velocityX = 0;
 let velocityY = 0;
 let isLocked = true; // Verrouillage initial de la carte
 let isBoatMoving = false; // Le bateau ne bouge pas au début
+let boatPos = { x: 1950, y: 2100 }; // Position initiale du bateau (Cabanon en base 3000)
 
 const smoothing = 0.05; // Plus petit = plus lent et fluide
 const friction = 0.85;
@@ -190,6 +191,10 @@ function updateBoat() {
     boat.style.setProperty('--pin-x', x);
     boat.style.setProperty('--pin-y', y);
     boat.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+
+    // Mettre à jour boatPos pour les particules et la mini-map (base 3000)
+    boatPos.x = (x / 2000) * MAP_WIDTH;
+    boatPos.y = (y / 2000) * MAP_HEIGHT;
 }
 
 
@@ -224,6 +229,39 @@ function updateMinimap() {
 
     minimapDot.style.left = dotX + 'px';
     minimapDot.style.top = dotY + 'px';
+
+    // Mettre à jour les points d'intérêt sur la mini-map
+    const pins = document.querySelectorAll('.pin:not(.boat)');
+    pins.forEach(pin => {
+        let dotId = '';
+        if (pin.classList.contains('cabanon')) dotId = 'minimap-dot-cabanon';
+        else if (pin.classList.contains('huitre')) dotId = 'minimap-dot-huitre';
+
+        const dot = document.getElementById(dotId);
+        if (dot) {
+            // Récupérer les coordonnées CSS (base 2000)
+            const pinX = parseFloat(getComputedStyle(pin).getPropertyValue('--pin-x'));
+            const pinY = parseFloat(getComputedStyle(pin).getPropertyValue('--pin-y'));
+
+            // Convertir base 2000 -> base 3000 (MAP_WIDTH/HEIGHT) -> Minimap
+            // (pinX / 2000 * MAP_WIDTH) / MAP_WIDTH * minimapSize  = (pinX / 2000) * minimapSize
+            const minimapX = (pinX / 2000) * minimapSize;
+            const minimapY = (pinY / 2000) * minimapSize;
+
+            dot.style.left = minimapX + 'px';
+            dot.style.top = minimapY + 'px';
+        }
+    });
+
+    // Mettre à jour le point du bateau sur la mini-map
+    const boatDot = document.getElementById('minimap-boat-dot');
+    if (boatDot) {
+        // boatPos est déjà en base 3000 (MAP_WIDTH/HEIGHT)
+        const boatMinimapX = (boatPos.x / MAP_WIDTH) * minimapSize;
+        const boatMinimapY = (boatPos.y / MAP_HEIGHT) * minimapSize;
+        boatDot.style.left = boatMinimapX + 'px';
+        boatDot.style.top = boatMinimapY + 'px';
+    }
 }
 
 centerMap();
@@ -596,50 +634,51 @@ class Particle {
     }
 
     update() {
-        // OPTIMISATION : Calcule d'abord la distance sans racine carrée
+        // OPTIMISATION : Calcule d'abord les distances simplifiées
         const dx = mouse.x - this.x;
         const dy = mouse.y - this.y;
 
-        // Si la particule est loin de la souris (> 250px) ET qu'elle est déjà à sa place
-        // On ne fait RIEN (pas de calcul, pas d'accès DOM = énorme gain de perf)
-        if (Math.abs(dx) > 250 || Math.abs(dy) > 250) {
+        const bdx = boatPos ? (boatPos.x - this.x) : 9999;
+        const bdy = boatPos ? (boatPos.y - this.y) : 9999;
+
+        // On ne fait rien si loin de tout
+        if (Math.abs(dx) > 250 && Math.abs(dy) > 250 && Math.abs(bdx) > 250 && Math.abs(bdy) > 250) {
             if (this.x === this.baseX && this.y === this.baseY) {
                 return;
             }
         }
 
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxDistance = 60; // Rayon du "trou" réduit
+        const boatDistance = Math.sqrt(bdx * bdx + bdy * bdy);
 
-        // Calcul de la position cible (positions de base)
+        const maxDistance = 60;
+        const boatMaxDistance = 120; // Plus large pour le bateau
+
+        // Force de retour
         const baseDx = this.baseX - this.x;
         const baseDy = this.baseY - this.y;
+        let forceX = baseDx * 0.1;
+        let forceY = baseDy * 0.1;
 
-        // Force de retour vers la position d'origine
-        let returnForceX = baseDx * 0.1;
-        let returnForceY = baseDy * 0.1;
-
-        // Force de répulsion (souris)
-        let pushForceX = 0;
-        let pushForceY = 0;
-
+        // Force souris
         if (distance < maxDistance) {
-            // "Hard" repulsion : on veut éjecter le point hors du cercle
             const force = (maxDistance - distance) / maxDistance;
-
-            // On pousse très fort pour créer le vide
-            // L'exponentielle permet d'avoir un bord très net (mur)
             const strength = Math.pow(force, 2) * 50;
-
-            pushForceX = -(dx / distance) * strength;
-            pushForceY = -(dy / distance) * strength;
+            forceX -= (dx / distance) * strength;
+            forceY -= (dy / distance) * strength;
         }
 
-        // Application des forces
-        this.x += returnForceX + pushForceX;
-        this.y += returnForceY + pushForceY;
+        // Force bateau
+        if (boatDistance < boatMaxDistance) {
+            const force = (boatMaxDistance - boatDistance) / boatMaxDistance;
+            const strength = Math.pow(force, 2) * 80;
+            forceX -= (bdx / boatDistance) * strength;
+            forceY -= (bdy / boatDistance) * strength;
+        }
 
-        // On arrondit pour éviter les micro-mouvements sub-pixel inutiles et stabiliser
+        this.x += forceX;
+        this.y += forceY;
+
         if (Math.abs(this.x - this.baseX) < 0.1) this.x = this.baseX;
         if (Math.abs(this.y - this.baseY) < 0.1) this.y = this.baseY;
 
