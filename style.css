@@ -29,7 +29,7 @@ body {
     /* Agrandit le visuel */
     padding: 10px 15px;
     /* Agrandit la zone de clic */
-    cursor: pointer;
+    cursor: url('cursor-grab.svg') 16 18, pointer;
     color: #400097;
     transition: color 0.2s;
     line-height: 1;
@@ -569,9 +569,8 @@ body {
     background: #ffe304;
     border: 4px solid #400097;
     padding: 30px;
-    min-width: 800px;
     max-width: 95vw;
-    z-index: 1000;
+    z-index: 7000;
     animation: popupIn 0.3s ease;
 }
 
@@ -601,7 +600,7 @@ body {
     color: #400097;
     font-size: 40px;
     font-weight: 700;
-    cursor: pointer;
+    cursor: url('cursor-grab.svg') 16 18, pointer;
     transition: color 0.2s;
     padding: 10px;
     line-height: 1;
@@ -723,7 +722,7 @@ video {
     bottom: 180px;
     right: 40px;
     z-index: 1000;
-    cursor: pointer;
+    cursor: url('cursor-grab.svg') 16 18, pointer;
     animation: bounceIn 0.5s ease, shake 1.5s infinite 0.5s;
 }
 
@@ -871,10 +870,39 @@ video {
     gap: 15px;
 }
 
+.chat-bubble-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+}
+
+.chat-bubble-wrapper.same-sender {
+    margin-top: -10px;
+    /* Colle les bulles du même expéditeur */
+}
+
+.chat-bubble-wrapper.manon {
+    align-self: flex-start;
+}
+
+.chat-bubble-wrapper.user {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.chat-sender-name {
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: #400097;
+    text-transform: uppercase;
+}
+
 .chat-bubble {
     padding: 12px 18px;
     border-radius: 0;
-    max-width: 85%;
+    width: max-content;
+    max-width: 100%;
     font-family: inherit;
     font-size: 1.1rem;
     line-height: 1.4;
@@ -885,13 +913,11 @@ video {
 .chat-bubble.manon {
     background: #ffffff;
     color: #400097;
-    align-self: flex-start;
 }
 
 .chat-bubble.user {
     background: #400097;
     color: #ffe304;
-    align-self: flex-end;
 }
 
 .messenger-options {
@@ -912,7 +938,7 @@ video {
     font-size: 1rem;
     font-weight: 800;
     text-align: left;
-    cursor: pointer;
+    cursor: url('cursor-grab.svg') 16 18, pointer;
     transition: all 0.2s;
 }
 
@@ -923,7 +949,7 @@ video {
 
 .messenger-option:disabled {
     opacity: 0.6;
-    cursor: not-allowed;
+    cursor: url('cursor-grab.svg') 16 18, not-allowed;
 }
 
 .messenger-options.hidden {

@@ -11,12 +11,12 @@ const poiData = {
     },
     quiz: {
         title: "LE JUSTE PRIX : DÉGUSTATION",
-        question: "Quelle est la meilleure durée à attendre pour déguster une huître ?",
+        question: "Pour vous c'est combien l'attente conseillée pour manger une huître qui sort du bassin ?",
         options: [
-            { id: 'A', text: "Jour 1", correct: false },
-            { id: 'B', text: "Jour 2-3", correct: true },
-            { id: 'C', text: "Jour 4-5", correct: false },
-            { id: 'D', text: "Jour 6-7", correct: false }
+            { id: 'A', text: "1 jour", correct: false },
+            { id: 'B', text: "2-3 jours", correct: true },
+            { id: 'C', text: "4-5 jours", correct: false },
+            { id: 'D', text: "6-7 jours", correct: false }
         ],
         feedback: "L'huître est vivante ! Elle libère ses arômes et sa 'deuxième eau' optimale entre le 2ème et le 3ème jour."
     }
@@ -318,7 +318,13 @@ if (cabanon) {
 document.querySelectorAll('.list-item').forEach(item => {
     item.addEventListener('click', () => {
         const id = item.dataset.id;
-        if (id) {
+        if (id === 'quiz') {
+            // Pour le quiz, on ouvre la messagerie
+            if (typeof openMessenger === 'function') {
+                openMessenger();
+                if (listPanel) listPanel.classList.add('hidden');
+            }
+        } else if (id) {
             showPopup(id);
         }
     });
@@ -723,26 +729,40 @@ function openMessenger() {
     messengerContainer.classList.remove('hidden');
     messengerChat.innerHTML = '';
     messengerOptions.classList.add('hidden');
+    messengerChat.dataset.lastSender = ""; // Réinitialiser le dernier expéditeur
 
     // Sequence de messages
     setTimeout(() => {
-        addChatBubble("Manon", "Coucou ! J'espère que la visite du cabanon t'a plu. 😊");
+        addChatBubble("Manon", "Les gars devinez je viens d'apprendre quoi ?");
     }, 500);
 
     setTimeout(() => {
-        addChatBubble("Manon", "Avant de partir vers les parcs, j'ai une petite question pour toi...");
-    }, 2000);
-
-    setTimeout(() => {
         showMessengerQuiz();
-    }, 3500);
+    }, 2000);
 }
 
 function addChatBubble(sender, text) {
+    const bubbleWrapper = document.createElement('div');
+    bubbleWrapper.className = `chat-bubble-wrapper ${sender.toLowerCase() === 'manon' ? 'manon' : 'user'}`;
+
+    // On n'affiche le nom que si c'est un nouvel expéditeur
+    if (messengerChat.dataset.lastSender !== sender) {
+        const senderName = document.createElement('div');
+        senderName.className = 'chat-sender-name';
+        senderName.textContent = sender;
+        bubbleWrapper.appendChild(senderName);
+    } else {
+        bubbleWrapper.classList.add('same-sender');
+    }
+
+    messengerChat.dataset.lastSender = sender;
+
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${sender.toLowerCase() === 'manon' ? 'manon' : 'user'}`;
     bubble.textContent = text;
-    messengerChat.appendChild(bubble);
+
+    bubbleWrapper.appendChild(bubble);
+    messengerChat.appendChild(bubbleWrapper);
     messengerChat.scrollTop = messengerChat.scrollHeight;
 }
 
