@@ -1070,3 +1070,9 @@ video {
 .messenger-options.hidden {
     display: none;
 }
+
+/* UX Improvements: Disable pins when Messenger is active */
+body.messenger-active .pin,
+body.messenger-active .boat {
+    pointer-events: none !important;
+}

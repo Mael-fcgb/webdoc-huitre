@@ -2,16 +2,16 @@
 // Données des points d'intérêt
 const poiData = {
     cabanon: {
-        title: "LE CABANON",
+        title: "LA CABANE",
         description: "Découvrez l'histoire de ce lieu emblématique."
     },
     huitre: {
-        title: "PARCS À HUITRES",
+        title: "PARC À HUITRES",
         description: "Découvrez l'histoire de ce lieu emblématique."
     },
     boat: {
         title: "LE BATEAU",
-        description: "Suivez le trajet du bateau vers les parcs à huîtres."
+        description: "Suivez le trajet du bateau vers le parc à huîtres."
     },
     quiz: {
         title: "LE JUSTE PRIX : DÉGUSTATION",
@@ -28,7 +28,7 @@ const poiData = {
         title: "DANGER : VERS PLATS",
         question: "Les gars je viens d'apprendre l'existence des vers plats, vous savez ce que c'est ?",
         options: [
-            { id: 'A', text: "Un type d'huitre", correct: false },
+            { id: 'A', text: "Un type d'huître", correct: false },
             { id: 'B', text: "Une maladie", correct: false },
             { id: 'C', text: "Un parasite", correct: true },
             { id: 'D', text: "Un plat", correct: false }
@@ -579,6 +579,18 @@ function closePopup() {
 
         // Au lieu de lancer le bateau direct, on lance la notif de Manon
         setTimeout(triggerMessengerNotification, 1000);
+    } else if (activePopupId === 'huitre') {
+        // Retour à la cabane
+        boatDirection = -1;
+        isBoatMoving = true;
+        boatState = 'moving';
+
+        // Mettre à jour le message d'onboarding
+        const onboardingBox = document.getElementById('onboarding-box');
+        if (onboardingBox) {
+            onboardingBox.textContent = "Retourne à la cabane pour découvrir le cycle de vie de l'huitre";
+            onboardingBox.classList.remove('hidden');
+        }
     } else if (activePopupId === 'boat') {
         // Arrivée au parc à huitres
         boatProgress = 1; // Position finale (ou presque, selon stopProgressRange)
@@ -919,6 +931,7 @@ window.addEventListener('load', () => {
 function triggerMessengerNotification() {
     if (!messengerNotif) return;
     messengerNotif.classList.remove('hidden');
+    document.body.classList.add('messenger-active');
 
     // Jouer un petit son ? (Optionnel)
 
@@ -1027,14 +1040,15 @@ function handleMessengerAnswer(option) {
 
 function closeMessenger() {
     messengerContainer.classList.add('hidden');
+    document.body.classList.remove('messenger-active');
 
     // Mettre à jour et afficher la box d'onboarding pour le bateau
     const onboardingBox = document.getElementById('onboarding-box');
     if (onboardingBox) {
         if (currentMessengerQuizId === 'quiz') {
-            onboardingBox.textContent = "Le bateau part vers le parc à huitres. Cliquez dessus pour suivre son trajet !";
+            onboardingBox.textContent = "Le bateau part vers le parc à huîtres. Cliquez dessus pour suivre son trajet !";
         } else if (currentMessengerQuizId === 'quizVersPlats') {
-            onboardingBox.textContent = "Voici le parc. Cliquez dessus pour voir les huitres de plus près";
+            onboardingBox.textContent = "Voici le parc. Cliquez dessus pour voir les huîtres de plus près";
         }
         onboardingBox.classList.remove('hidden');
     }
