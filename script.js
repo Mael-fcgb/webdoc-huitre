@@ -9,6 +9,10 @@ const poiData = {
         title: "PARCS À HUITRES",
         description: "Découvrez l'histoire de ce lieu emblématique."
     },
+    boat: {
+        title: "LE BATEAU",
+        description: "Suivez le trajet du bateau vers les parcs à huîtres."
+    },
     quiz: {
         title: "LE JUSTE PRIX : DÉGUSTATION",
         question: "Pour vous c'est combien l'attente conseillée pour manger une huître qui sort du bassin ?",
@@ -19,8 +23,21 @@ const poiData = {
             { id: 'D', text: "6-7 jours", correct: false }
         ],
         feedback: "L'huître est vivante ! Elle libère ses arômes et sa 'deuxième eau' optimale entre le 2ème et le 3ème jour."
+    },
+    quizVersPlats: {
+        title: "DANGER : VERS PLATS",
+        question: "Les gars je viens d'apprendre l'existence des vers plats, vous savez ce que c'est ?",
+        options: [
+            { id: 'A', text: "Un type d'huitre", correct: false },
+            { id: 'B', text: "Une maladie", correct: false },
+            { id: 'C', text: "Un parasite", correct: true },
+            { id: 'D', text: "Un plat", correct: false }
+        ],
+        feedback: "C'est un parasite redoutable ! Il s'introduit dans l'huître et la dévore de l'intérieur."
     }
 };
+
+let currentMessengerQuizId = 'quiz'; // 'quiz' ou 'quizVersPlats'
 
 // Éléments DOM
 const mapContainer = document.getElementById('map-container');
@@ -40,6 +57,75 @@ const quizFeedback = document.getElementById('quiz-feedback');
 const popupClose = document.getElementById('popup-close');
 const closeListBtn = document.getElementById('close-list');
 const closeLegalBtn = document.getElementById('close-legal');
+
+// Éléments Intro
+const cinematicOverlay = document.getElementById('cinematic-overlay');
+const introVideo = document.getElementById('intro-video');
+const skipIntroBtn = document.getElementById('skip-intro');
+const playIntroBtn = document.getElementById('play-intro-btn');
+
+// Fonction pour démarrer le site
+function startSite() {
+    if (cinematicOverlay) {
+        cinematicOverlay.style.display = 'none';
+        if (introVideo) {
+            introVideo.pause();
+            introVideo.currentTime = 0; // Optionnel : reset
+        }
+    }
+}
+
+// Gestion de l'intro
+if (introVideo) {
+    // On essaye de jouer avec le son
+    const playVideo = () => {
+        const playPromise = introVideo.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                // Vidéo lancée avec succès
+                if (cinematicOverlay) cinematicOverlay.onclick = null;
+                if (playIntroBtn) playIntroBtn.classList.add('hidden');
+            }).catch(error => {
+                console.warn("Autoplay bloqué. En attente d'un clic.");
+                // Optionnel : on pourrait montrer un bouton ou un texte ici
+            });
+        }
+    };
+
+    playVideo();
+
+    // Fallback : au premier clic sur l'overlay, on essaye de lancer
+    if (cinematicOverlay) {
+        cinematicOverlay.style.cursor = 'pointer';
+        cinematicOverlay.onclick = () => {
+            playVideo();
+        };
+    }
+
+    // Quand la vidéo finit
+    introVideo.onended = startSite;
+}
+
+if (skipIntroBtn) {
+    skipIntroBtn.onclick = startSite;
+}
+
+if (playIntroBtn) {
+    playIntroBtn.onclick = () => {
+        const playVideo = () => {
+            const playPromise = introVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    if (cinematicOverlay) cinematicOverlay.onclick = null;
+                    if (playIntroBtn) playIntroBtn.classList.add('hidden');
+                }).catch(error => {
+                    console.warn("Play manual bloqué.");
+                });
+            }
+        };
+        playVideo();
+    };
+}
 
 // Éléments Messenger
 const messengerNotif = document.getElementById('messenger-notification');
@@ -164,36 +250,71 @@ const points = {
     parc: { x: 400, y: 400 }
 };
 
+// Variables pour la nouvelle manœuvre
+let boatState = 'moving'; // 'moving', 'waiting', 'turning'
+let boatWaitStartTime = 0;
+let boatRotationOffset = 0; // Rotation supplémentaire pendant le demi-tour (0 à 180)
+const BOAT_WAIT_MS = 5000;
+const BOAT_TURN_SPEED = 1; // Degrés par frame (pour un demi-tour en ~3s à 60fps)
+
 function updateBoat() {
     if (!boat) return;
 
-    if (isBoatMoving) {
-        boatProgress += boatSpeed * boatDirection;
+    // Calcul de la distance totale pour les 200px d'arrêt
+    const dx = points.parc.x - points.cabanon.x;
+    const dy = points.parc.y - points.cabanon.y;
+    const totalDist2000 = Math.sqrt(dx * dx + dy * dy);
+    // 200px en base 3000 => 133.3 en base 2000
+    const stopProgressRange = 133.3 / totalDist2000;
 
-        if (boatProgress >= 1) {
-            boatProgress = 1;
-            boatDirection = -1;
-        } else if (boatProgress <= 0) {
-            boatProgress = 0;
-            boatDirection = 1;
+    if (isBoatMoving) {
+        if (boatState === 'moving') {
+            boatProgress += boatSpeed * boatDirection;
+
+            // Vérification des points d'arrêt
+            if (boatDirection === 1 && boatProgress >= (1 - stopProgressRange)) {
+                boatProgress = 1 - stopProgressRange;
+                boatState = 'waiting';
+                boatWaitStartTime = Date.now();
+            } else if (boatDirection === -1 && boatProgress <= stopProgressRange) {
+                boatProgress = stopProgressRange;
+                boatState = 'waiting';
+                boatWaitStartTime = Date.now();
+            }
+        } else if (boatState === 'waiting') {
+            if (Date.now() - boatWaitStartTime >= BOAT_WAIT_MS) {
+                boatState = 'turning';
+                boatRotationOffset = 0;
+            }
+        } else if (boatState === 'turning') {
+            boatRotationOffset += BOAT_TURN_SPEED;
+            if (boatRotationOffset >= 180) {
+                boatRotationOffset = 180;
+                boatDirection *= -1; // On inverse la direction
+                boatState = 'moving';
+                boatRotationOffset = 0; // On reset pour le prochain tour
+            }
         }
     }
 
-    // Interpolation linéaire
+    // Interpolation de position
     const x = points.cabanon.x + (points.parc.x - points.cabanon.x) * boatProgress;
     const y = points.cabanon.y + (points.parc.y - points.cabanon.y) * boatProgress;
 
-    // Calcul de l'angle (entre cabanon et parc)
-    const angle = Math.atan2(points.parc.y - points.cabanon.y, points.parc.x - points.cabanon.x);
-    let rotation = angle * (180 / Math.PI);
+    // Calcul de l'angle de base (cabanon vers parc)
+    const baseAngle = Math.atan2(points.parc.y - points.cabanon.y, points.parc.x - points.cabanon.x) * (180 / Math.PI);
 
-    // Si on va vers le cabanon (retour), on inverse 
-    if (boatDirection === -1) {
-        rotation += 180;
+    // Rotation finale
+    // Si boatState == 'turning', on ajoute le décalage progressif à l'orientation actuelle
+    let rotation = baseAngle + (boatDirection === -1 ? 180 : 0);
+
+    if (boatState === 'turning') {
+        // Si on tournait vers le parc, on part de baseAngle et on va vers baseAngle + 180
+        // Si on tournait vers la cabane, on part de baseAngle + 180 et on va vers baseAngle + 360
+        rotation += boatRotationOffset;
     }
 
-    // Ajustement de l'offset si le SVG n'est pas orienté vers la droite (0°) par défaut
-    // Ici on ajoute +90 car souvent les bateaux sont dessinés "vers le haut"
+    // Ajustement de l'offset SVG (+90)
     rotation += 90;
 
     boat.style.setProperty('--pin-x', x);
@@ -322,7 +443,7 @@ document.addEventListener('mouseup', () => {
 */
 
 // Gestion des clics sur les pins
-document.querySelectorAll('.pin').forEach(pin => {
+document.querySelectorAll('.pin, .boat').forEach(pin => {
     pin.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = pin.dataset.id;
@@ -458,6 +579,32 @@ function closePopup() {
 
         // Au lieu de lancer le bateau direct, on lance la notif de Manon
         setTimeout(triggerMessengerNotification, 1000);
+    } else if (activePopupId === 'boat') {
+        // Arrivée au parc à huitres
+        boatProgress = 1; // Position finale (ou presque, selon stopProgressRange)
+        isBoatMoving = false;
+
+        // Centrer la carte sur le parc à huitres
+        const containerWidth = mapContainer.offsetWidth;
+        const containerHeight = mapContainer.offsetHeight;
+        const parcX = points.parc.x / 2000 * MAP_WIDTH;
+        const parcY = points.parc.y / 2000 * MAP_HEIGHT;
+
+        targetX = -(parcX - containerWidth / 2);
+        targetY = -(parcY - containerHeight / 2);
+
+        // Appliquer les limites
+        const limits = getLimits();
+        targetX = Math.max(limits.minX, Math.min(limits.maxX, targetX));
+        targetY = Math.max(limits.minY, Math.min(limits.maxY, targetY));
+
+        // Cacher la box onboarding du bateau
+        const onboardingBox = document.getElementById('onboarding-box');
+        if (onboardingBox) onboardingBox.classList.add('hidden');
+
+        // Déclencher la DEUXIÈME notification Messenger
+        currentMessengerQuizId = 'quizVersPlats';
+        setTimeout(triggerMessengerNotification, 2000);
     } else if (isLocked) {
         // Fallback si c'est pas le cabanon (ne devrait pas arriver en onboarding normal)
         isLocked = false;
@@ -712,6 +859,16 @@ function spawnParticles() {
 
     for (let y = 0; y < MAP_HEIGHT; y += gridStep) {
         for (let x = 0; x < MAP_WIDTH; x += gridStep) {
+            // Zone d'exclusion autour de l'huître (pin-x: 400, pin-y: 400 en base 2000 => 600, 600 en base 3000)
+            const oysterX = (400 / 2000) * MAP_WIDTH;
+            const oysterY = (400 / 2000) * MAP_HEIGHT;
+            const dx = x - oysterX;
+            const dy = y - oysterY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // Si on est trop proche de l'huître, on ne spawn pas de particule
+            if (dist < 160) continue;
+
             particles.push(new Particle(x, y, 2.5, blueColor));
         }
     }
@@ -814,7 +971,7 @@ function addChatBubble(sender, text) {
 }
 
 function showMessengerQuiz() {
-    const data = poiData.quiz;
+    const data = poiData[currentMessengerQuizId];
     addChatBubble("Manon", data.question);
 
     messengerOptions.innerHTML = '';
@@ -844,11 +1001,15 @@ function handleMessengerAnswer(option) {
         }
 
         setTimeout(() => {
-            addChatBubble("Manon", poiData.quiz.feedback);
+            addChatBubble("Manon", poiData[currentMessengerQuizId].feedback);
         }, 1200);
 
         setTimeout(() => {
-            addChatBubble("Manon", "Bon, je te laisse filer au parc ! Le bateau t'attend. Bon voyage ! 👋");
+            if (currentMessengerQuizId === 'quiz') {
+                addChatBubble("Manon", "Bon, je te laisse filer au parc ! Le bateau t'attend. Bon voyage ! 👋");
+            } else {
+                addChatBubble("Manon", "Fais bien attention à tes huîtres ! À plus tard ! 👋");
+            }
 
             // Ajouter un bouton "Fermer" final ou fermer auto
             const closeBtn = document.createElement('button');
@@ -870,12 +1031,21 @@ function closeMessenger() {
     // Mettre à jour et afficher la box d'onboarding pour le bateau
     const onboardingBox = document.getElementById('onboarding-box');
     if (onboardingBox) {
-        onboardingBox.textContent = "Le bateau part vers le parc à huitres. Cliquez dessus pour suivre son trajet !";
+        if (currentMessengerQuizId === 'quiz') {
+            onboardingBox.textContent = "Le bateau part vers le parc à huitres. Cliquez dessus pour suivre son trajet !";
+        } else if (currentMessengerQuizId === 'quizVersPlats') {
+            onboardingBox.textContent = "Voici le parc. Cliquez dessus pour voir les huitres de plus près";
+        }
         onboardingBox.classList.remove('hidden');
     }
 
+    // Rendre le bateau cliquable
+    if (boat) {
+        boat.classList.add('boat-clickable');
+    }
+
     // Déclencher le mouvement du bateau si on est en onboarding
-    if (!isBoatMoving) {
+    if (!isBoatMoving && currentMessengerQuizId === 'quiz') {
         isBoatMoving = true;
     }
 }
