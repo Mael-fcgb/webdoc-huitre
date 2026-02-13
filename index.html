@@ -183,7 +183,7 @@
     <div id="bottom-nav">
         <!-- Ligne du haut (titre section + compteur) -->
         <div class="nav-top">
-            <span class="nav-count">6</span> Lieux à trouver
+            <span class="nav-count">3</span> Lieux à trouver
         </div>
 
         <!-- Ligne du bas (boutons) -->
@@ -216,15 +216,10 @@
             <!-- Pas de header row ici, juste la liste stylée -->
             <div class="list-content">
                 <!-- La liste sera remplie dynamiquement ou manuellement plus tard -->
-                <div class="list-row list-item" data-id="cabanon">
+                <div class="list-row list-item" data-id="cabanon" id="list-item-cabanon">
                     <span class="row-title">LA CABANE</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
-                        <path fill-rule="evenodd"
-                            d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z"
-                            clip-rule="evenodd" />
-                    </svg>
                 </div>
-                <div class="list-row list-item" data-id="huitre">
+                <div class="list-row list-item is-locked" data-id="huitre" id="list-item-huitre">
                     <span class="row-title">PARC À HUITRES</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
                         <path fill-rule="evenodd"
@@ -232,7 +227,7 @@
                             clip-rule="evenodd" />
                     </svg>
                 </div>
-                <div class="list-row list-item" data-id="boat">
+                <div class="list-row list-item is-locked" data-id="boat" id="list-item-boat">
                     <span class="row-title">LE BATEAU</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-lock">
                         <path fill-rule="evenodd"
@@ -241,10 +236,10 @@
                     </svg>
                 </div>
                 <div class="list-row list-item" data-id="quiz">
-                    <span class="row-title">LE JUSTE PRIX : DÉGUSTATION</span>
+                    <span class="row-title">QUIZZ : DÉGUSTATION</span>
                 </div>
                 <div class="list-row list-item" data-id="quizVersPlats">
-                    <span class="row-title">DANGER : VERS PLATS</span>
+                    <span class="row-title">QUIZZ : VERS PLATS</span>
                 </div>
             </div>
         </div>

@@ -619,7 +619,13 @@ body {
     border-bottom: 2px solid #400097;
     color: #400097;
     cursor: url('cursor-grab.svg') 16 18, pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+.list-item.is-locked {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
 }
 
 .list-row:hover {
@@ -631,6 +637,13 @@ body {
     height: 2.2rem;
     margin-left: 15px;
     flex-shrink: 0;
+    display: none;
+    /* Masqué par défaut */
+}
+
+.list-item.is-locked .icon-lock {
+    display: block;
+    /* Affiché uniquement si verrouillé */
 }
 
 .row-title {

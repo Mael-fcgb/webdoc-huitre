@@ -3,18 +3,18 @@
 const poiData = {
     cabanon: {
         title: "LA CABANE",
-        description: "Découvrez l'histoire de ce lieu emblématique."
+        video: "Timeline 1.mp4"
     },
     huitre: {
         title: "PARC À HUITRES",
-        description: "Découvrez l'histoire de ce lieu emblématique."
+        video: "Timeline 4.mp4"
     },
     boat: {
         title: "LE BATEAU",
-        description: "Suivez le trajet du bateau vers le parc à huîtres."
+        video: "Timeline 3.mp4"
     },
     quiz: {
-        title: "LE JUSTE PRIX : DÉGUSTATION",
+        title: "QUIZZ : DÉGUSTATION",
         question: "Pour vous c'est combien l'attente conseillée pour manger une huître qui sort du bassin ?",
         options: [
             { id: 'A', text: "1 jour", correct: false },
@@ -25,7 +25,7 @@ const poiData = {
         feedback: "L'huître est vivante ! Elle libère ses arômes et sa 'deuxième eau' optimale entre le 2ème et le 3ème jour."
     },
     quizVersPlats: {
-        title: "DANGER : VERS PLATS",
+        title: "QUIZZ : VERS PLATS",
         question: "Les gars je viens d'apprendre l'existence des vers plats, vous savez ce que c'est ?",
         options: [
             { id: 'A', text: "Un type d'huître", correct: false },
@@ -70,7 +70,8 @@ function startSite() {
         cinematicOverlay.style.display = 'none';
         if (introVideo) {
             introVideo.pause();
-            introVideo.currentTime = 0; // Optionnel : reset
+            introVideo.muted = true; // Sécurité supplémentaire
+            introVideo.currentTime = 0;
         }
     }
 }
@@ -107,7 +108,10 @@ if (introVideo) {
 }
 
 if (skipIntroBtn) {
-    skipIntroBtn.onclick = startSite;
+    skipIntroBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startSite();
+    });
 }
 
 if (playIntroBtn) {
@@ -251,6 +255,8 @@ const points = {
 };
 
 // Variables pour la nouvelle manœuvre
+let isReturningToCabane = false; // Flag pour savoir si on revient du parc
+let cabaneVisitCount = 0; // Compteur pour les vidéos de la cabane
 let boatState = 'moving'; // 'moving', 'waiting', 'turning'
 let boatWaitStartTime = 0;
 let boatRotationOffset = 0; // Rotation supplémentaire pendant le demi-tour (0 à 180)
@@ -280,6 +286,20 @@ function updateBoat() {
                 boatProgress = stopProgressRange;
                 boatState = 'waiting';
                 boatWaitStartTime = Date.now();
+
+                // SI ON REVIENT DU PARC : on s'arrête définitivement ici
+                if (isReturningToCabane) {
+                    console.log("Boat arrived back at Cabane. Ready for next video.");
+                    isBoatMoving = false;
+                    isReturningToCabane = false;
+
+                    // Onboarding final
+                    const onboardingBox = document.getElementById('onboarding-box');
+                    if (onboardingBox) {
+                        onboardingBox.textContent = "Clique sur la cabane pour découvrir le cycle de vie de l'huitre";
+                        onboardingBox.classList.remove('hidden');
+                    }
+                }
             }
         } else if (boatState === 'waiting') {
             if (Date.now() - boatWaitStartTime >= BOAT_WAIT_MS) {
@@ -505,6 +525,16 @@ function showPopup(id) {
     const data = poiData[id];
     if (!data) return;
 
+    // Logique séquentielle pour la cabane
+    if (id === 'cabanon') {
+        if (cabaneVisitCount === 0) {
+            data.video = "Timeline 1.mp4";
+        } else {
+            data.video = "Timeline 2.mp4";
+        }
+        cabaneVisitCount++;
+    }
+
     popupTitle.textContent = data.title;
 
     // Reset display
@@ -528,10 +558,16 @@ function showPopup(id) {
             quizOptions.appendChild(btn);
         });
     } else {
-        if (popupVideo) popupVideo.classList.remove('hidden');
+        if (popupVideo) {
+            popupVideo.classList.remove('hidden');
+            if (data.video) {
+                popupVideo.src = data.video;
+                popupVideo.load();
+            }
+        }
         popupTitle.textContent = data.title;
-        popupDescription.textContent = data.description;
-        popupDescription.classList.remove('hidden');
+        // La description est cachée pour les vidéos
+        if (popupDescription) popupDescription.classList.add('hidden');
     }
 
     popup.classList.remove('hidden');
@@ -563,6 +599,15 @@ function handleQuizAnswer(button, isCorrect, feedbackText) {
     quizFeedback.classList.remove('hidden');
 }
 
+// Déverrouiller un item dans la liste des médias
+function unlockMedia(id) {
+    const item = document.getElementById(`list-item-${id}`);
+    if (item) {
+        item.classList.remove('is-locked');
+    }
+}
+
+
 // Fermer la popup
 function closePopup() {
     popup.classList.add('hidden');
@@ -580,10 +625,12 @@ function closePopup() {
         // Au lieu de lancer le bateau direct, on lance la notif de Manon
         setTimeout(triggerMessengerNotification, 1000);
     } else if (activePopupId === 'huitre') {
+        console.log("Closing Oyster Park popup. Starting return journey to Cabane.");
         // Retour à la cabane
         boatDirection = -1;
         isBoatMoving = true;
         boatState = 'moving';
+        isReturningToCabane = true; // Activer le flag de retour
 
         // Mettre à jour le message d'onboarding
         const onboardingBox = document.getElementById('onboarding-box');
@@ -621,6 +668,11 @@ function closePopup() {
         // Fallback si c'est pas le cabanon (ne devrait pas arriver en onboarding normal)
         isLocked = false;
         isBoatMoving = true;
+    }
+
+    // Déverrouiller le média correspondant si applicable
+    if (activePopupId) {
+        unlockMedia(activePopupId);
     }
 }
 
@@ -930,6 +982,17 @@ window.addEventListener('load', () => {
 
 function triggerMessengerNotification() {
     if (!messengerNotif) return;
+
+    // Mise à jour du texte de preview selon le quiz en cours
+    const preview = messengerNotif.querySelector('.messenger-preview');
+    if (preview) {
+        if (currentMessengerQuizId === 'quiz') {
+            preview.textContent = "Les gars devinez je viens d'apprendre quoi ?";
+        } else {
+            preview.textContent = "Les gars je viens d'apprendre l'existence des vers plats...";
+        }
+    }
+
     messengerNotif.classList.remove('hidden');
     document.body.classList.add('messenger-active');
 
@@ -949,13 +1012,19 @@ function openMessenger() {
     messengerChat.dataset.lastSender = ""; // Réinitialiser le dernier expéditeur
 
     // Sequence de messages
-    setTimeout(() => {
-        addChatBubble("Manon", "Les gars devinez je viens d'apprendre quoi ?");
-    }, 500);
+    if (currentMessengerQuizId === 'quiz') {
+        setTimeout(() => {
+            addChatBubble("Manon", "Les gars devinez je viens d'apprendre quoi ?");
+        }, 500);
 
-    setTimeout(() => {
-        showMessengerQuiz();
-    }, 2000);
+        setTimeout(() => {
+            showMessengerQuiz();
+        }, 2000);
+    } else if (currentMessengerQuizId === 'quizVersPlats') {
+        setTimeout(() => {
+            showMessengerQuiz();
+        }, 500);
+    }
 }
 
 function addChatBubble(sender, text) {
@@ -1007,16 +1076,30 @@ function handleMessengerAnswer(option) {
     addChatBubble("Moi", option.text);
 
     setTimeout(() => {
-        if (option.correct) {
-            addChatBubble("Manon", "Bravo ! C'est exactement ça. 🎉");
+        if (currentMessengerQuizId === 'quiz') {
+            if (option.correct) {
+                addChatBubble("Manon", "Bien joué c'est ça mais une huître peut aussi être consommée 1 semaine après la sortie de bassin si elle est bien conservée.");
+            } else {
+                addChatBubble("Manon", "Mmmh, c'est deux trois jours !");
+                setTimeout(() => {
+                    addChatBubble("Manon", "Sache qu'une huître peut aussi être consommée 1 semaine après la sortie de bassin si elle est bien conservée.");
+                }, 1200);
+            }
         } else {
-            addChatBubble("Manon", "Mmmh, pas tout à fait...");
+            // Feedback standard pour les autres quiz (ex: Vers Plats)
+            if (option.correct) {
+                addChatBubble("Manon", "Bravo ! C'est exactement ça. 🎉");
+            } else {
+                addChatBubble("Manon", "Mmmh, pas tout à fait...");
+            }
+
+            setTimeout(() => {
+                addChatBubble("Manon", poiData[currentMessengerQuizId].feedback);
+            }, 1200);
         }
 
-        setTimeout(() => {
-            addChatBubble("Manon", poiData[currentMessengerQuizId].feedback);
-        }, 1200);
-
+        // Message de conclusion et bouton final
+        const delayEnd = currentMessengerQuizId === 'quiz' ? 2500 : 3000;
         setTimeout(() => {
             if (currentMessengerQuizId === 'quiz') {
                 addChatBubble("Manon", "Bon, je te laisse filer au parc ! Le bateau t'attend. Bon voyage ! 👋");
@@ -1024,7 +1107,6 @@ function handleMessengerAnswer(option) {
                 addChatBubble("Manon", "Fais bien attention à tes huîtres ! À plus tard ! 👋");
             }
 
-            // Ajouter un bouton "Fermer" final ou fermer auto
             const closeBtn = document.createElement('button');
             closeBtn.className = 'messenger-option';
             closeBtn.textContent = "C'est parti !";
@@ -1033,7 +1115,7 @@ function handleMessengerAnswer(option) {
             messengerOptions.innerHTML = '';
             messengerOptions.appendChild(closeBtn);
             messengerOptions.classList.remove('hidden');
-        }, 3000);
+        }, delayEnd);
 
     }, 800);
 }
