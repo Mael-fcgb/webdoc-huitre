@@ -57,6 +57,7 @@ const quizFeedback = document.getElementById('quiz-feedback');
 const popupClose = document.getElementById('popup-close');
 const closeListBtn = document.getElementById('close-list');
 const closeLegalBtn = document.getElementById('close-legal');
+const bgMusic = document.getElementById('bg-music');
 
 // Éléments Intro
 const cinematicOverlay = document.getElementById('cinematic-overlay');
@@ -73,6 +74,10 @@ function startSite() {
             introVideo.muted = true; // Sécurité supplémentaire
             introVideo.currentTime = 0;
         }
+    }
+    // Lancer la musique de fond
+    if (bgMusic) {
+        bgMusic.play().catch(e => console.warn("Lancement audio fond bloqué:", e));
     }
 }
 
@@ -537,6 +542,9 @@ function showPopup(id) {
 
     popupTitle.textContent = data.title;
 
+    // Couper la musique de fond pendant la vidéo
+    if (bgMusic) bgMusic.pause();
+
     // Reset display
     if (popupVideo) popupVideo.classList.add('hidden');
     if (quizContainer) quizContainer.classList.add('hidden');
@@ -611,10 +619,22 @@ function unlockMedia(id) {
 // Fermer la popup
 function closePopup() {
     popup.classList.add('hidden');
+
+    // Arrêter la vidéo et le son
+    if (popupVideo) {
+        popupVideo.pause();
+        popupVideo.currentTime = 0;
+        // On vide le src pour être sûr que tout s'arrête (chargement, audio, etc.)
+        popupVideo.src = "";
+    }
+
     const overlay = document.getElementById('overlay');
     if (overlay) {
         overlay.remove();
     }
+
+    // Relancer la musique de fond
+    if (bgMusic) bgMusic.play().catch(e => console.warn("Reprise audio fond bloquée:", e));
 
     // Suite onboarding : Déclenchement Messenger ou Bateau
     if (isLocked && activePopupId === 'cabanon') {
