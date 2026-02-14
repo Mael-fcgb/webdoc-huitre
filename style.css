@@ -199,11 +199,11 @@ body {
     width: calc(100vw - 140px);
     height: calc(100vh - 80px);
     overflow: hidden;
-    cursor: url('cursor.svg') 16 18, auto;
+    cursor: grab;
 }
 
 #map-container:active {
-    cursor: url('cursor.svg') 16 18, auto;
+    cursor: grabbing;
 }
 
 #map-wrapper {

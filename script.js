@@ -421,51 +421,55 @@ function updateMinimap() {
 centerMap();
 animate();
 
-// Gestion du déplacement de la carte - DÉSACTIVÉ
-/*
-mapContainer.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.pin')) return;
+// Gestion du déplacement de la carte (Pointer Events pour souris + tactile)
+mapContainer.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.pin, .boat, .list-item')) return;
+    if (isLocked) return;
+
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
     velocityX = 0;
     velocityY = 0;
-    mapContainer.style.cursor = "url('cursor.svg') 16 18, auto";
+
+    // Capturer le pointeur pour continuer à recevoir les événements même si on sort du conteneur
+    mapContainer.setPointerCapture(e.pointerId);
 });
 
-let lastMouseX = 0;
-let lastMouseY = 0;
+let lastPointerY = 0;
 
-document.addEventListener('mousemove', (e) => {
+mapContainer.addEventListener('pointermove', (e) => {
     if (!isDragging) return;
 
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
 
-    velocityX = (e.clientX - lastMouseX) * 0.3;
-    velocityY = (e.clientY - lastMouseY) * 0.3;
+    // Calcul de la vélocité pour l'inertie
+    velocityX = (e.clientX - lastPointerX) * 0.5;
+    velocityY = (e.clientY - lastPointerY) * 0.5;
 
-    lastMouseX = e.clientX;
-    lastMouseY = e.clientY;
-
-    let newX = currentX + deltaX;
-    let newY = currentY + deltaY;
+    lastPointerX = e.clientX;
+    lastPointerY = e.clientY;
 
     const limits = getLimits();
-    targetX = Math.max(limits.minX, Math.min(limits.maxX, newX));
-    targetY = Math.max(limits.minY, Math.min(limits.maxY, newY));
+    targetX = Math.max(limits.minX, Math.min(limits.maxX, targetX + deltaX));
+    targetY = Math.max(limits.minY, Math.min(limits.maxY, targetY + deltaY));
 
     startX = e.clientX;
     startY = e.clientY;
 });
 
-document.addEventListener('mouseup', () => {
+const endDrag = (e) => {
     if (isDragging) {
         isDragging = false;
-        mapContainer.style.cursor = "url('cursor.svg') 16 18, auto";
+        mapContainer.releasePointerCapture(e.pointerId);
     }
-});
-*/
+};
+
+mapContainer.addEventListener('pointerup', endDrag);
+mapContainer.addEventListener('pointercancel', endDrag);
 
 // Gestion des clics sur les pins
 document.querySelectorAll('.pin, .boat').forEach(pin => {
@@ -767,51 +771,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Support tactile - DÉSACTIVÉ
-/*
-let lastTouchX = 0;
-let lastTouchY = 0;
-
-mapContainer.addEventListener('touchstart', (e) => {
-    if (e.target.closest('.pin')) return;
-    isDragging = true;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    lastTouchX = startX;
-    lastTouchY = startY;
-    velocityX = 0;
-    velocityY = 0;
-});
-
-document.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-
-    const deltaX = e.touches[0].clientX - startX;
-    const deltaY = e.touches[0].clientY - startY;
-
-    velocityX = (e.touches[0].clientX - lastTouchX) * 0.3;
-    velocityY = (e.touches[0].clientY - lastTouchY) * 0.3;
-
-    lastTouchX = e.touches[0].clientX;
-    lastTouchY = e.touches[0].clientY;
-
-    let newX = currentX + deltaX;
-    let newY = currentY + deltaY;
-
-    const limits = getLimits();
-    targetX = Math.max(limits.minX, Math.min(limits.maxX, newX));
-    targetY = Math.max(limits.minY, Math.min(limits.maxY, newY));
-
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-});
-
-document.addEventListener('touchend', () => {
-    if (isDragging) {
-        isDragging = false;
-    }
-});
-*/
+// window resize (on garde)
 
 window.addEventListener('resize', () => {
     const limits = getLimits();
